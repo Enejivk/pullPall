@@ -1,56 +1,48 @@
-import { useEffect, useRef } from 'react';
-import { getDocument } from 'pdfjs-dist';
-import * as pdfjsLib from 'pdfjs-dist';
-import { GlobalWorkerOptions } from 'pdfjs-dist';
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 
-// Configure the worker
-GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.js',
-  import.meta.url
-).toString();
+import { NavBar } from './components/layout/NavBar';
+import { Footer } from './components/layout/Footer';
+import { HomePage } from './pages/HomePage';
+import { LoginPage } from './pages/LoginPage';
+import { DashboardPage } from './pages/DashboardPage';
+import { ReviewPage } from './pages/ReviewPage';
+import { useAppStore } from './lib/store';
 
-function PDFViewer({ url }: { url: string }) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+// Mock user for demo purposes
+const DEMO_USER = {
+  id: '1',
+  name: 'Demo User',
+  username: 'demouser',
+  avatar: 'https://github.com/github.png',
+};
 
-  useEffect(() => {
-    const loadPDF = async () => {
-      try {
-        const loadingTask = getDocument(url);
-        const pdf = await loadingTask.promise;
-        const page = await pdf.getPage(1);
-        const viewport = page.getViewport({ scale: 1.5 });
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        
-        const context = canvas.getContext('2d');
-        if (!context) return;
+function App() {
+  // For demo: Auto-login with mock user
+  const { user, setUser } = useAppStore();
 
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
+  React.useEffect(() => {
+    // Auto-set demo user for showcase purposes
+    if (!user) {
+      setUser(DEMO_USER);
+    }
+  }, [user, setUser]);
 
-        await page.render({
-          canvasContext: context,
-          viewport: viewport
-        }).promise;
-      } catch (error) {
-        console.error('Error loading PDF:', error);
-      }
-    };
-
-    loadPDF();
-  }, [url]);
-
-  return <canvas ref={canvasRef}></canvas>;
-}
-
-
-export default function App() {
   return (
-
-    <div className="App">
-      <h1>PDF Viewer</h1>
-      <h1>dddddddddddddddddddddddddddddddd</h1>
-      <PDFViewer url="https://doloreschatbucket.s3.us-east-2.amazonaws.com/lawyers/ghawkins/Intake+Forms/signed_ContractAgreement4.pdf" />
+    <div className="flex flex-col min-h-screen">
+      <NavBar />
+      <main className="flex-grow pt-16">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/review/:id" element={<ReviewPage />} />
+          <Route path="*" element={<Navigate to="/\" replace />} />
+        </Routes>
+      </main>
+      <Footer />
     </div>
   );
 }
+
+export default App;
